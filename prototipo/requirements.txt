@@ -1,0 +1,6 @@
+# Dependencias do prototipo (dispositivos, borda, IA, forense).
+paho-mqtt==2.1.0
+requests==2.32.3
+numpy==2.1.3
+scikit-learn==1.5.2
+# Painel: ver nuvem/painel/requirements.txt

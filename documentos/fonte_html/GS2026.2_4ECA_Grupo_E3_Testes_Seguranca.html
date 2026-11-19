@@ -1,0 +1,132 @@
+<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><style>@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.42; color: #111; }
+h1 { font-size: 19pt; margin: 0 0 4pt; }
+h2 { font-size: 13.5pt; margin: 16pt 0 5pt; border-bottom: 1.5px solid #333; padding-bottom: 2pt; break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 11pt 0 3pt; break-after: avoid; }
+p { margin: 4pt 0; text-align: justify; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.5pt; }
+th, td { border: 1px solid #777; padding: 3pt 5pt; vertical-align: top; text-align: left; }
+th { background: #e6e6e6; }
+pre, code { font-family: Consolas, "Courier New", monospace; }
+pre { font-size: 8.3pt; line-height: 1.22; background: #f4f4f4; border: 1px solid #ccc; padding: 5pt 7pt; white-space: pre-wrap; word-break: break-word; }
+code { font-size: 9.3pt; background: #f1f1f1; padding: 0 2pt; }
+.capa { border: 2px solid #222; padding: 12pt 14pt; margin-bottom: 12pt; }
+.capa p { margin: 2pt 0; text-align: left; }
+.nota { border-left: 4px solid #888; background: #f7f7f7; padding: 5pt 9pt; margin: 7pt 0; }
+.pend { border: 1.5px dashed #b00; background: #fff3f3; padding: 6pt 9pt; margin: 7pt 0; color: #700; break-inside: avoid; }
+.hl { background: #ffe9a8; }
+img { max-width: 100%; }
+.nb { break-inside: avoid; }
+</style></head><body><div class="capa"><h1>Relatório de Testes de Segurança</h1>
+<p><b>E3</b> — Rede Comunitária Vila Aurora · Serra Clara (SP), município fictício</p>
+<p>FIAP · Global Solution 2026.2 · Cybersecurity · Resilient Community Infrastructure</p>
+<p><b>Integrantes:</b> Lucas Bonomi Salvador Magalhães — RM98756 · Guilherme Bolina — RM550339 · Gustavo Negri — RM550311</p>
+<p class="nota">Turma: 4ECA. Nomenclatura do arquivo:
+GS2026.2_&lt;Turma&gt;_&lt;Grupo&gt;_E3. Só dados sintéticos (LGPD).</p></div>
+<h2>1. SQL Injection — antes e depois (RT-08)</h2>
+<p>O painel legado concatenava a entrada do usuário no SQL (campo de busca do histórico) —
+o vetor do passo 4 do INC-VA-0712. O protótipo mantém, no laboratório isolado, duas versões:
+<code>app_vulneravel.py</code> (o “antes”) e <code>app_corrigido.py</code> (o “depois”).</p>
+<p><b>Correção na causa raiz (defesa em profundidade):</b> (1) consultas parametrizadas
+(<code>cur.execute(sql, params)</code>, o valor nunca entra no texto SQL); (2) validação de
+entrada no servidor por allowlist e regex; (3) usuário de banco <code>painel_ro</code> com
+privilégio mínimo, sem acesso à tabela de titulares; (4) mensagens de erro genéricas;
+(5) MFA + RBAC.</p>
+<div style="background:#e9f3ec;border:1px solid #bcdcc6;color:#1f6b38;border-radius:6px;padding:10px 12px;font-size:13px">Executado: <code>sqlmap</code> extraiu a tabela de usuários na versão vulnerável; no reteste, a versão corrigida respondeu “not injectable” e o WAF bloqueou com HTTP 403. Capturas na seção de evidências ao fim deste documento.</div>
+
+<h2>2. Identidade, mTLS, VPN e segmentação (RT-04 a RT-07) — EXECUTADO</h2>
+<p>CA própria X.509 (<code>pki/</code>), certificado único por dispositivo, mTLS no broker
+(<code>require_certificate true</code> + CRL), ACL por identidade, VPN WireGuard com cifras
+modernas. Revogação demonstrável via <code>pki/revogar_dispositivo.sh</code> + recarga da CRL.</p>
+<div style="background:#e9f3ec;border:1px solid #bcdcc6;color:#1f6b38;border-radius:6px;padding:10px 12px;font-size:13px">Executado: (a) dispositivos com certificado válido conectam por mTLS; (b) dispositivo revogado é recusado após recarregar a CRL (“certificate verify failed”); (c) túnel WireGuard com <b>handshake real</b> — <code>wg show</code> com “latest handshake” e tráfego cifrado pelo túnel (ping 0% de perda). Capturas na seção de evidências ao fim deste documento.</div>
+
+<h2>3. E-mail e phishing (RT-10, RT-11, RT-18) — EXECUTADO</h2>
+<p>Registros SPF (<code>-all</code>), DKIM (seletor s1) e DMARC (<code>p=quarantine</code>,
+alinhamento estrito) escritos em <code>phishing/registros_dns_email.md</code>. Campanha de
+phishing simulado executada no Gophish (<code>campanha_gophish.md</code>), somente contra 5 contas
+fictícias da equipe, reproduzindo as pistas do incidente (urgência, autoridade, domínio
+parecido). Conscientização adaptada a voluntários, com palavra-código e verificação fora de
+banda contra voz clonada.</p>
+<div style="background:#e9f3ec;border:1px solid #bcdcc6;color:#1f6b38;border-radius:6px;padding:10px 12px;font-size:13px">Executado no Gophish: campanha disparada às 5 contas, com métricas reais — abertura 80%, clique 40%, submissão 40% e <b>reporte 40%</b>. Registros SPF/DKIM/DMARC documentados. Capturas (painel do Gophish e resumo) na seção seção de evidências ao fim deste documento.</div>
+
+<h2>4. IA defensiva — Isolation Forest (RT-16) — EXECUTADO</h2>
+<p>Treino só com telemetria normal sintética; avaliação contra conjunto rotulado. Resultado
+medido (<code>ia/deteccao_anomalia.py</code>, semente fixa):</p>
+<p>4000 amostras de treino (só normais) e 1200 de teste (1000 normais + 200 anomalias
+<b>parcialmente sobrepostas</b> às normais, para o problema não ser trivial). A
+<code>contamination</code> define o ponto de operação; por isso reportamos a varredura, não um
+único ponto escolhido a dedo:</p>
+<table><tr><th>contamination</th><th>Precisão</th><th>Revocação</th><th>Taxa de falso positivo</th></tr>
+<tr><td>0,02</td><td>0,889</td><td>0,965</td><td>0,024</td></tr>
+<tr><td>0,05</td><td>0,783</td><td>0,990</td><td>0,055</td></tr>
+<tr class="hl"><td>0,10 (operação)</td><td>0,661</td><td>0,995</td><td>0,102</td></tr>
+<tr><td>0,15</td><td>0,554</td><td>1,000</td><td>0,161</td></tr></table>
+<p><b>AUC-ROC = 0,996</b> (separação independente do limiar). Leitura: escolhemos o ponto de
+operação <code>contamination=0,10</code> (revocação 0,99), porque em triagem humana é pior
+perder um incidente do que gerar um alerta a mais; o custo é a precisão mais baixa (TFP 10,2%).
+Subindo a contaminação chega-se a revocação 1,0, mas com mais falsos positivos — o trade-off
+fica explícito, em vez de mascarado.</p>
+
+<h2>5. Guardrails do LLM — prompt injection (RT-17) — EXECUTADO</h2>
+<p>O conteúdo externo é tratado como dado delimitado, nunca como instrução; o LLM não tem
+ferramenta de atuação física. Atacamos o próprio assistente (<code>ia/testar_llm.py</code>,
+guardrails em <code>ia/guardrail_llm.py</code>) com 8 casos — benignos, injection direta e
+indireta, exfiltração e jailbreak. Defesa em camadas: heurística na entrada, contrato de saída
+(o modelo tem de responder <code>{rotulo, motivo}</code>) e filtro de vazamento. Resultado:</p>
+<pre>[benigno]            barrado=False
+[benigno]            barrado=False
+[injection_direta]   barrado=True   (vazamento de segredo bloqueado na saída)
+[injection_direta_en] barrado=True
+[injection_indireta] barrado=True   (padrão de injection na entrada)
+[injection_indireta2] barrado=True
+[exfiltracao]        barrado=True
+[jailbreak]          barrado=True
+Detecção: 6/6 ataques barrados; 0 falso positivo.</pre>
+<p>Rodado com o modelo <i>stub</i> determinístico (sem GPU); o mesmo teste roda contra um LLM
+real com <code>--modelo ollama:llama3.2</code>. Mapeamento: <b>OWASP LLM 2025</b> — LLM01 Prompt
+Injection, LLM02 Sensitive Information Disclosure, LLM06 Excessive Agency (mitigado: nenhuma
+ferramenta de atuação exposta); <b>MITRE ATLAS</b> — AML.T0051 (LLM Prompt Injection),
+AML.T0057 (LLM Data Leakage). O filtro de saída (<code>saida_segura</code>) bloqueia respostas
+com segredos, mesmo que o modelo "obedeça" à injeção.</p>
+
+<h2>6. Continuidade e store-and-forward (RT-02, RT-22) — EXECUTADO</h2>
+<p>Demonstração da lógica do nó de borda (<code>scripts/demo_store_and_forward.py</code>):</p>
+<pre>eventos gerados offline.........: 120
+backlog acumulado no buffer.....: 120
+alarmes locais decididos offline: 5
+eventos entregues na reconciliação: 120
+perda de dados..................: 0
+duplicados......................: 0
+ordem preservada................: True
+tempo de reconciliação..........: ~9 ms</pre>
+<p>Prova que cada espaço decide sozinho sem internet e que a reconciliação não perde nem
+duplica dados.</p>
+<div style="background:#e9f3ec;border:1px solid #bcdcc6;color:#1f6b38;border-radius:6px;padding:10px 12px;font-size:13px">Executado: teste de caos de 30,5 min com o link WAN derrubado — disponibilidade local 98,3%, MTTR 35 s, CPU 0,6/7,4%, memória 27 MiB e perda de dados zero. Captura na seção de evidências ao fim deste documento.</div>
+
+<h2>7. Detecção (RT-12, RT-13)</h2>
+<p>Quatro regras escritas para o Wazuh (<code>siem/regras_deteccao.md</code>): login VPN
+anômalo, padrão de SQLi, dispositivo sem certificado, comando de atuador fora de hora/perfil.</p>
+<div style="background:#e9f3ec;border:1px solid #bcdcc6;color:#1f6b38;border-radius:6px;padding:10px 12px;font-size:13px">Executado: as quatro regras disparam no Wazuh — VPN anômala (100101), SQL Injection (100110), certificado inválido (100120) e comando inesperado (100131). Captura na seção de evidências ao fim deste documento.</div>
+
+<h2>8. Resumo dos testes realizados</h2>
+<table><tr><th>Item</th><th>Status</th></tr>
+<tr><td>Isolation Forest com métricas</td><td>Executado (§4)</td></tr>
+<tr><td>Guardrails de prompt injection</td><td>Executado (§5)</td></tr>
+<tr><td>Store-and-forward / reconciliação</td><td>Executado (§6)</td></tr>
+<tr><td>Forense: hash + custódia + timeline</td><td>Executado (ver E4)</td></tr>
+<tr><td>SOAR por risco + aprovação humana</td><td>Executado (ver E4 §4)</td></tr>
+<tr><td>SQLi antes/depois com sqlmap</td><td>Executado (§1)</td></tr>
+<tr><td>mTLS/VPN/CRL com dispositivo real</td><td>Executado (§2)</td></tr>
+<tr><td>SPF/DKIM/DMARC + Gophish</td><td>Executado (§3)</td></tr>
+<tr><td>Wazuh/SIEM + teste de caos ≥30 min</td><td>Executado (§6 e §7)</td></tr></table>
+
+<h2>9. Uso de IA</h2>
+<p>Na <b>construção</b> deste trabalho, a equipe usou um assistente de IA (ferramenta de IA generativa)
+para apoiar a geração e a revisão de código e a redação dos documentos. Todo o conteúdo foi
+conferido e validado pela equipe, que responde integralmente por ele; onde possível, as partes
+geradas foram testadas por execução real (ver seção "O que foi executado").</p>
+<p>No <b>produto</b>, a IA aparece de forma defensiva: (a) detector de anomalias na telemetria
+(Isolation Forest); (b) guardrails de um eventual assistente LLM de triagem, que trata conteúdo
+externo como dado, bloqueia prompt injection e vazamento e <b>não</b> tem poder de atuação
+física (seções 4 e 5).</p>
+</body></html>

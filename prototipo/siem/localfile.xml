@@ -1,0 +1,13 @@
+<!-- Fontes de log centralizadas (RT-12). Anexado ao ossec.conf do manager por
+     siem/configurar_wazuh.sh. Todos os servicos gravam em ./logs (UTC, ISO 8601). -->
+<ossec_config>
+  <localfile><log_format>json</log_format><location>/var/log/vila/painel.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/painel_legado.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/ingest.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/borda.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/atuador.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/vpn.json</location></localfile>
+  <localfile><log_format>json</log_format><location>/var/log/vila/waf_audit.json</location></localfile>
+  <localfile><log_format>syslog</log_format><location>/var/log/vila/mosquitto.log</location></localfile>
+  <localfile><log_format>syslog</log_format><location>/var/log/vila/postgres/postgresql.log</location></localfile>
+</ossec_config>

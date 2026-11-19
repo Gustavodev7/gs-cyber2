@@ -1,0 +1,50 @@
+{
+  "modelo": "IsolationForest",
+  "n_estimators": 300,
+  "features": [
+    "temp_camara_fria",
+    "nivel_agua",
+    "carga_energia",
+    "tentativas_acesso_hora"
+  ],
+  "amostras_treino": 4000,
+  "amostras_teste": 1200,
+  "ponto_de_operacao": {
+    "contamination": 0.1,
+    "precisao": 0.6611,
+    "revocacao": 0.995,
+    "auc_roc": 0.9964,
+    "verdadeiros_positivos": 199,
+    "falsos_positivos": 102,
+    "falsos_negativos": 1,
+    "verdadeiros_negativos": 898,
+    "taxa_falso_positivo": 0.102
+  },
+  "varredura_contamination": [
+    {
+      "contamination": 0.02,
+      "precisao": 0.8894,
+      "revocacao": 0.965,
+      "taxa_falso_positivo": 0.024
+    },
+    {
+      "contamination": 0.05,
+      "precisao": 0.7826,
+      "revocacao": 0.99,
+      "taxa_falso_positivo": 0.055
+    },
+    {
+      "contamination": 0.1,
+      "precisao": 0.6611,
+      "revocacao": 0.995,
+      "taxa_falso_positivo": 0.102
+    },
+    {
+      "contamination": 0.15,
+      "precisao": 0.554,
+      "revocacao": 1.0,
+      "taxa_falso_positivo": 0.161
+    }
+  ],
+  "leitura": "AUC-ROC mede a separacao independente do limiar. A contamination escolhe o ponto de operacao: mais alta pega mais anomalias (revocacao) ao custo de mais falsos positivos. Para triagem humana isso e aceitavel."
+}

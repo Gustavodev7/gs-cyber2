@@ -1,0 +1,39 @@
+# NUNCA versionar segredos (regra de entrega: segredo real no repo desconta em C9).
+.env
+*.env
+credenciais_lab.txt
+
+# Material da PKI: chaves privadas, certificados emitidos, CA, CRL, base da CA.
+# So o script e a config entram no repo; o material e gerado no laboratorio.
+pki/private/
+pki/certs/
+pki/arquivados/
+pki/newcerts/
+pki/ca/
+pki/crl/
+pki/index.txt*
+pki/serial*
+pki/crlnumber*
+
+# WireGuard (chaves e configs geradas no lab)
+vpn/local/
+vpn/peers.json
+*.key
+*.pub
+wg*.conf.local
+
+# DKIM
+*dkim*.private
+
+# Buffers, bancos locais e saidas de execucao
+*.db
+__pycache__/
+*.pyc
+.venv/
+
+# Logs centralizados e evidencias geradas no lab (vao para os prints, nao para o git).
+# Excecao: as evidencias FORENSES ficam versionadas para o laudo ser reproduzivel
+# (ver forense/casos/*/custodia.json), entao NAO sao ignoradas aqui.
+logs/
+scripts/caos/
+forense/casos/*/ataque/

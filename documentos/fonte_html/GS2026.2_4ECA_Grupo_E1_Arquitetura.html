@@ -1,0 +1,190 @@
+<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><style>@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.42; color: #111; }
+h1 { font-size: 19pt; margin: 0 0 4pt; }
+h2 { font-size: 13.5pt; margin: 16pt 0 5pt; border-bottom: 1.5px solid #333; padding-bottom: 2pt; break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 11pt 0 3pt; break-after: avoid; }
+p { margin: 4pt 0; text-align: justify; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.5pt; }
+th, td { border: 1px solid #777; padding: 3pt 5pt; vertical-align: top; text-align: left; }
+th { background: #e6e6e6; }
+pre, code { font-family: Consolas, "Courier New", monospace; }
+pre { font-size: 8.3pt; line-height: 1.22; background: #f4f4f4; border: 1px solid #ccc; padding: 5pt 7pt; white-space: pre-wrap; word-break: break-word; }
+code { font-size: 9.3pt; background: #f1f1f1; padding: 0 2pt; }
+.capa { border: 2px solid #222; padding: 12pt 14pt; margin-bottom: 12pt; }
+.capa p { margin: 2pt 0; text-align: left; }
+.nota { border-left: 4px solid #888; background: #f7f7f7; padding: 5pt 9pt; margin: 7pt 0; }
+.pend { border: 1.5px dashed #b00; background: #fff3f3; padding: 6pt 9pt; margin: 7pt 0; color: #700; break-inside: avoid; }
+.hl { background: #ffe9a8; }
+img { max-width: 100%; }
+.nb { break-inside: avoid; }
+</style></head><body><div class="capa"><h1>Documento de Arquitetura</h1>
+<p><b>E1</b> — Rede Comunitária Vila Aurora · Serra Clara (SP), município fictício</p>
+<p>FIAP · Global Solution 2026.2 · Cybersecurity · Resilient Community Infrastructure</p>
+<p><b>Integrantes:</b> Lucas Bonomi Salvador Magalhães — RM98756 · Guilherme Bolina — RM550339 · Gustavo Negri — RM550311</p>
+<p class="nota">Turma: 4ECA. Nomenclatura do arquivo:
+GS2026.2_&lt;Turma&gt;_&lt;Grupo&gt;_E1. Só dados sintéticos (LGPD).</p></div>
+<h2>1. Visão geral</h2>
+<p>A Rede Vila Aurora liga cinco espaços (Centro, Escola, UBS, Horta/Cozinha, Abrigo) com
+conectividade frágil. A arquitetura é <b>em camadas e modular</b>, com um princípio central:
+cada espaço continua funcionando quando a internet cai. A nuvem agrega e analisa, mas nunca
+é ponto único de falha para as decisões de segurança de vida (câmara fria de vacinas, nível
+de água, alarmes).</p>
+
+<h2>2. Camadas e fluxo de dados</h2>
+<table><tr><th>Camada</th><th>Função</th><th>Componentes (protótipo)</th></tr><tr><td><b>Campo</b></td><td>Coletar e atuar</td><td>Sensores (nível, temperatura, energia), fechaduras, relés da bomba (simulados em container). Cada um com certificado X.509 próprio.</td></tr><tr><td><b>Borda (edge)</b></td><td>Operar sozinho por espaço</td><td>Mini-PC por espaço: broker MQTT local (mTLS+ACL+CRL), regras locais (câmara fria, bomba), buffer store-and-forward. Decide sem a nuvem.</td></tr><tr><td><b>Nuvem / serviços</b></td><td>Consolidar, histórico, IA, SIEM</td><td>Postgres, painel, Isolation Forest, Wazuh, SOAR. Alcançável só pela VPN.</td></tr><tr><td><b>Supervisão</b></td><td>Visualizar e intervir</td><td>Painel web acessível (WCAG AA), alertas, aprovação humana para ações de alto impacto.</td></tr></table>
+<figure class="nb" style="margin:8pt 0;text-align:center">
+<svg viewBox="0 0 760 418" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" role="img" aria-label="Diagrama da arquitetura em camadas da Rede Vila Aurora">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#444"/></marker>
+    <marker id="af" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#b00"/></marker>
+  </defs>
+  <!-- segmentos (redes) -->
+  <rect x="8" y="34" width="210" height="236" rx="8" fill="#f0f8f0" stroke="#2a7d2a" stroke-width="1.5"/>
+  <text x="14" y="28" font-size="11" font-weight="700" fill="#2a7d2a">Segmento IoT (rede iot)</text>
+  <rect x="232" y="34" width="246" height="236" rx="8" fill="#eef5fb" stroke="#1f6fb0" stroke-width="1.5"/>
+  <text x="238" y="28" font-size="11" font-weight="700" fill="#1f6fb0">Borda ↔ Nuvem (VPN / rede wan)</text>
+  <rect x="492" y="34" width="260" height="236" rx="8" fill="#fbf6ec" stroke="#8a5a00" stroke-width="1.5"/>
+  <text x="498" y="28" font-size="11" font-weight="700" fill="#8a5a00">Serviços + operadores (dados/operadores/admin)</text>
+
+  <!-- CAMPO -->
+  <text x="20" y="54" font-size="10.5" font-weight="700" fill="#2a7d2a">CAMPO</text>
+  <rect x="20" y="60" width="186" height="50" rx="6" fill="#fff" stroke="#2a7d2a" stroke-width="1.2"/>
+  <text x="30" y="78" font-size="10.5" font-weight="700" fill="#111">Sensores + atuadores</text>
+  <text x="30" y="92" font-size="9" fill="#333">nível, temp. câmara fria, energia,</text>
+  <text x="30" y="104" font-size="9" fill="#333">bomba — cert. X.509 próprio (mTLS)</text>
+
+  <!-- BORDA -->
+  <text x="244" y="54" font-size="10.5" font-weight="700" fill="#1f6fb0">BORDA (um por espaço)</text>
+  <rect x="244" y="60" width="222" height="126" rx="6" fill="#fff" stroke="#1f6fb0" stroke-width="1.2"/>
+  <text x="254" y="78" font-size="10.5" font-weight="700" fill="#111">Nó de borda autônomo</text>
+  <text x="254" y="94" font-size="9" fill="#333">• Broker MQTT local (mTLS+ACL+CRL)</text>
+  <text x="254" y="108" font-size="9" fill="#333">• Regras locais: câmara fria, bomba</text>
+  <text x="254" y="122" font-size="9" fill="#333">• Buffer store-and-forward (SQLite)</text>
+  <text x="254" y="136" font-size="9" fill="#333">• Decide SEM a nuvem</text>
+  <rect x="254" y="150" width="202" height="28" rx="4" fill="#eef5fb" stroke="#1f6fb0"/>
+  <text x="262" y="168" font-size="9" fill="#333">Link WAN cai → acumula e segue operando</text>
+
+  <!-- NUVEM -->
+  <text x="504" y="54" font-size="10.5" font-weight="700" fill="#8a5a00">NUVEM / SERVIÇOS</text>
+  <rect x="504" y="60" width="238" height="24" rx="6" fill="#fff" stroke="#8a5a00" stroke-width="1.2"/>
+  <text x="512" y="76" font-size="9" fill="#333"><tspan font-weight="700">Ingestão</tspan> HTTPS mTLS+CRL (idempotente)</text>
+  <rect x="504" y="88" width="238" height="24" rx="6" fill="#fff" stroke="#8a5a00" stroke-width="1.2"/>
+  <text x="512" y="104" font-size="9" fill="#333"><tspan font-weight="700">WAF</tspan> ModSecurity/CRS → <tspan font-weight="700">Painel</tspan> RBAC+MFA</text>
+  <rect x="504" y="116" width="238" height="24" rx="6" fill="#fff" stroke="#8a5a00" stroke-width="1.2"/>
+  <text x="512" y="132" font-size="9" fill="#333"><tspan font-weight="700">Postgres</tspan> — privilégio mínimo (painel_ro)</text>
+  <rect x="504" y="144" width="238" height="24" rx="6" fill="#fff" stroke="#8a5a00" stroke-width="1.2"/>
+  <text x="512" y="160" font-size="9" fill="#333"><tspan font-weight="700">IA</tspan> Isolation Forest · <tspan font-weight="700">SIEM</tspan> · <tspan font-weight="700">SOAR</tspan></text>
+  <rect x="504" y="196" width="238" height="40" rx="6" fill="#fff" stroke="#8a5a00" stroke-width="1.2"/>
+  <text x="512" y="213" font-size="10.5" font-weight="700" fill="#8a5a00">SUPERVISÃO</text>
+  <text x="512" y="227" font-size="9" fill="#333">Painel acessível (WCAG AA) · aprovação humana</text>
+
+  <!-- fluxos -->
+  <path d="M206,85 L242,85" stroke="#444" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+  <text x="206" y="80" font-size="8.5" fill="#444">MQTT/mTLS</text>
+  <path d="M466,110 L502,100" stroke="#444" stroke-width="1.6" fill="none" marker-end="url(#a)"/>
+  <text x="300" y="206" font-size="8.5" fill="#1f6fb0">VPN WireGuard — admin só por aqui, nada exposto</text>
+  <path d="M355,186 L355,214 L502,214" stroke="#b00" stroke-width="1.6" fill="none" stroke-dasharray="4 3" marker-end="url(#af)"/>
+  <text x="250" y="258" font-size="8.5" fill="#b00">Falha de link: alarma no espaço; backlog reconcilia ao voltar (perda 0)</text>
+
+  <!-- STRIDE / incidente -->
+  <rect x="20" y="284" width="722" height="122" rx="6" fill="#f7f7f7" stroke="#999"/>
+  <text x="30" y="302" font-size="10.5" font-weight="700" fill="#111">Cada falha do INC-VA-0712 → um controle (STRIDE)</text>
+  <text x="30" y="320" font-size="9" fill="#333">Phishing + voz clonada (Spoofing) → SPF/DKIM/DMARC, palavra-código, verificação fora de banda — RT-10,11,18</text>
+  <text x="30" y="336" font-size="9" fill="#333">VPN só com senha (Spoofing/Elevation) → WireGuard + MFA, nada exposto — RT-06,09</text>
+  <text x="30" y="352" font-size="9" fill="#333">SQL Injection (Tampering/Info) → parametrização + validação + privilégio mínimo + WAF — RT-08</text>
+  <text x="30" y="368" font-size="9" fill="#333">Sem operação local (DoS) → nó de borda autônomo + store-and-forward — RT-01,02</text>
+  <text x="30" y="384" font-size="9" fill="#333">Atuador alterado (Tampering) → RBAC + aprovação em quatro olhos — RT-09,15   ·   Logs ruins (Repudiation) → centralizado+NTP+hash — RT-12,14</text>
+  <text x="30" y="400" font-size="9" fill="#333">Detecção: 4 regras (RT-13) no SIEM → resposta SOAR: baixo risco automático, alto impacto exige humano</text>
+</svg>
+<figcaption style="font-size:9pt;color:#444;margin-top:3pt"><b>Figura 1 — Arquitetura em camadas da Rede Vila Aurora.</b> Campo → Borda (autônoma por espaço) → Nuvem/Serviços → Supervisão, com os três segmentos de rede, o fluxo normal (seta contínua), o fluxo em falha de link (tracejado vermelho) e o mapeamento de cada falha do incidente a um controle.</figcaption>
+</figure>
+<p><b>Fluxo normal:</b> sensor → (MQTT/mTLS) → broker local da borda → regra local decide +
+grava no buffer → (VPN WireGuard) → ingestão na nuvem → Postgres/painel/SIEM/IA.</p>
+<p><b>Fluxo em falha de link:</b> sensor → broker local → regra local decide e alarma no
+próprio espaço → buffer acumula (store-and-forward). Ao voltar o link, o backlog é enviado
+em ordem e reconciliado <b>sem perda</b> (medido: ver E3).</p>
+<div class="nota">Segmentação (RT-07): três segmentos — dispositivos IoT, operadores e serviços
+administrativos — com política de menor privilégio entre eles. A ACL do broker liga cada
+identidade (CN do certificado) ao mínimo necessário: sensor só publica no próprio tópico, a
+borda só assina.</div>
+
+<h2>3. Modelo de ameaças (STRIDE) a partir do INC-VA-0712</h2>
+<p>Cada falha que permitiu o incidente recebe um controle correspondente na arquitetura.</p>
+<table><tr><th>Falha observada no incidente</th><th>Categoria STRIDE</th><th>Controle na nova arquitetura</th></tr><tr><td>Phishing + voz clonada por IA levou ao roubo de credencial</td><td>Spoofing</td><td>SPF/DKIM/DMARC, treino de voluntários, palavra-código, verificação fora de banda (RT-10,11,18)</td></tr><tr><td>VPN legada só com senha, sem MFA</td><td>Spoofing / Elevation</td><td>WireGuard + MFA; admin só por VPN; nada exposto (RT-06,09)</td></tr><tr><td>SQL Injection no painel</td><td>Tampering / Info Disclosure</td><td>Parametrização, validação, menor privilégio, erro genérico (RT-08)</td></tr><tr><td>Extração da tabela de usuários</td><td>Information Disclosure</td><td>painel_ro sem acesso à base de titulares; pseudonimização (RT-08,19)</td></tr><tr><td>Alteração do agendamento da bomba</td><td>Tampering</td><td>Autorização por identidade/RBAC; comando de atuador monitorado (RT-09,13)</td></tr><tr><td>Sem operação local: câmara fria sem alerta ao cair a fibra</td><td>Denial of Service</td><td>Nó de borda autônomo, regras locais, store-and-forward (RT-01,02)</td></tr><tr><td>Logs espalhados, relógios fora de sincronia, sobrescritos</td><td>Repudiation</td><td>Logs centralizados, NTP, retenção, hash e custódia (RT-12,14)</td></tr></table>
+
+<h2>4. Segmentação e identidade</h2>
+<p>Identidade única por dispositivo e operador via certificado X.509 emitido pela CA própria
+do projeto (sem segredo compartilhado). mTLS obrigatório no MQTT; o broker recusa quem não
+apresentar certificado válido e não revogado (CRL). Acesso administrativo só pela VPN
+WireGuard com MFA; nenhuma porta administrativa exposta à internet. Entre segmentos, política
+de menor privilégio.</p>
+
+<h2>5. Plano de redundância proporcional (RT-03)</h2>
+<ul>
+<li><b>Terá redundância:</b> conectividade (link 4G de reserva no Abrigo e na UBS, os mais
+críticos) e energia (bateria + gerador já existentes). A borda é o próprio mecanismo de
+redundância de disponibilidade: opera off-line.</li>
+<li><b>Não terá redundância, e por quê:</b> a nuvem roda em instância única — uma queda dela
+não interrompe a operação local, só atrasa a consolidação; cluster multi-região seria custo
+sem retorno proporcional ao escopo. A Horta/Cozinha não recebe 4G de reserva (baixo impacto
+à segurança de vida).</li>
+</ul>
+
+<h2>6. Privacidade, custos, acessibilidade e manutenção</h2>
+<ul>
+<li><b>Privacidade (LGPD, RT-19):</b> só dados sintéticos; minimização; registros de acesso
+pseudonimizados (apelido + hash do crachá, nunca nome/CPF); retenção de 90 dias (telemetria)
+e 365 (segurança); RIPD simplificado no E3/anexo. Base legal: legítimo interesse da associação
+na segurança dos espaços.</li>
+<li><b>Custos (12 meses, estimativa):</b> 5 nós de borda (mini-PC/Raspberry Pi 5) ~R$ 3.500;
+sensores, fechaduras e relés para 5 espaços ~R$ 4.500; 5 nobreaks pequenos ~R$ 1.500; VPS da
+nuvem ~R$ 1.200/ano; 2 links 4G (UBS e Abrigo) ~R$ 1.400/ano; certificados: CA própria, custo
+zero. Mão de obra voluntária + ~40 h de técnico contratado para implantação ~R$ 4.000. Total
+aproximado de implantação + 1º ano: <b>~R$ 16.100</b>.</li>
+<li><b>Manutenção (RT-20):</b> rotação de certificados a cada 12 meses
+(<code>pki/rotacionar_dispositivo.sh</code>, com <code>verificar_validade.sh</code> semanal),
+atualização de firmware assinada, backups diários do Postgres. <b>Responsáveis nomeados:</b>
+coordenação (chaves da CA e aprovação de alto impacto), um técnico voluntário por espaço
+(hardware e sensores) e o responsável de dados/SOC (SIEM, logs, LGPD).</li>
+<li><b>Acessibilidade (RT-21):</b> painel com contraste AA (≥4,5:1 nos temas claro e escuro),
+navegação por teclado, foco visível, linguagem simples em português e rótulos claros nos
+alarmes (<code>nuvem/painel/templates/index.html</code> + <code>static/painel.css</code>).</li>
+</ul>
+
+<h3>6.1. RIPD simplificado (Relatório de Impacto à Proteção de Dados — RT-19)</h3>
+<table style="font-size:9pt"><tr><th>Item</th><th>Descrição</th></tr>
+<tr><td><b>Finalidade</b></td><td>Monitorar e coordenar recursos essenciais (energia, água, acesso, câmara fria de vacinas) de 5 espaços comunitários e permitir investigar incidentes.</td></tr>
+<tr><td><b>Dados tratados</b></td><td>Telemetria de sensores (sem titular); registros de acesso <b>pseudonimizados</b> (apelido sintético + hash do crachá, nunca nome/CPF); credenciais de operadores (hash PBKDF2 + segredo TOTP). <b>Só dados sintéticos</b> no protótipo.</td></tr>
+<tr><td><b>Base legal (LGPD)</b></td><td>Art. 7º, IX — legítimo interesse da associação na segurança dos espaços e das pessoas; e proteção da vida (câmara fria de vacinas). Avaliação de balanceamento favorável: o tratamento é mínimo e protege os próprios titulares.</td></tr>
+<tr><td><b>Minimização</b></td><td>A tabela de titulares não guarda identidade; o usuário <code>painel_ro</code> do banco <b>não</b> tem acesso a ela nem à de operadores (privilégio mínimo). A view de histórico expõe só o necessário.</td></tr>
+<tr><td><b>Retenção</b></td><td>Telemetria 90 dias; eventos de segurança 365 dias. Descarte automático após o prazo.</td></tr>
+<tr><td><b>Compartilhamento</b></td><td>Nenhum com terceiros. Acesso administrativo só pela VPN; serviços no loopback atrás do WAF.</td></tr>
+<tr><td><b>Riscos e medidas</b></td><td>Vazamento da base (como no incidente) → privilégio mínimo + parametrização + WAF. Acesso indevido → MFA + RBAC + segmentação. Perda de rastreabilidade → logs centralizados, NTP, hash e cadeia de custódia.</td></tr>
+<tr><td><b>Direitos dos titulares</b></td><td>Como os registros são pseudonimizados e sintéticos, não há identificação direta; em produção, canal da coordenação para atendimento aos direitos (art. 18).</td></tr>
+</table>
+
+<h2>7. Decisões e trade-offs</h2>
+<ul>
+<li><b>MQTT + mTLS</b> em vez de HTTP simples: custo de gerenciar PKI, em troca de identidade
+forte por dispositivo e proibição de segredo compartilhado.</li>
+<li><b>Regras de vida na borda</b>, não na nuvem: menos “inteligência central”, mais
+resiliência onde importa.</li>
+<li><b>WireGuard</b> em vez de VPN legada: cifras modernas, configuração simples, chave por par.</li>
+<li><b>IA só assistiva</b>: Isolation Forest e LLM geram alertas; a decisão física é humana.</li>
+</ul>
+
+<h2>8. Rastreabilidade dos requisitos</h2>
+<table style="font-size:8.6pt"><tr><th>ID</th><th>Requisito</th><th>Onde é atendido</th></tr><tr><td><b>RT-01</b></td><td>Arquitetura em camadas; cada espaço com nó de borda autônomo</td><td>borda/no_borda.py, diagrama §2</td></tr><tr><td><b>RT-02</b></td><td>Operação local em falha: broker local, regras locais, store-and-forward</td><td>borda/, scripts/demo_store_and_forward.py</td></tr><tr><td><b>RT-03</b></td><td>Redundância proporcional: link 4G / modo degradado; o que não terá</td><td>§5 Plano de redundância</td></tr><tr><td><b>RT-04</b></td><td>Identidade única X.509 por dispositivo; mTLS no MQTT</td><td>pki/, borda/mosquitto.conf</td></tr><tr><td><b>RT-05</b></td><td>Revogação (CRL) e rotação de credenciais</td><td>pki/revogar_dispositivo.sh</td></tr><tr><td><b>RT-06</b></td><td>VPN WireGuard borda↔nuvem; admin só por VPN; nada exposto</td><td>vpn/</td></tr><tr><td><b>RT-07</b></td><td>Segmentação IoT / operadores / serviços com menor privilégio</td><td>§4, ACL do broker</td></tr><tr><td><b>RT-08</b></td><td>Painel sem SQLi: parametrização, validação, menor privilégio</td><td>nuvem/painel/ (E3)</td></tr><tr><td><b>RT-09</b></td><td>MFA + RBAC (operador, técnico, coordenação, auditor)</td><td>nuvem/painel/app_corrigido.py</td></tr><tr><td><b>RT-10</b></td><td>SPF, DKIM, DMARC (quarantine)</td><td>phishing/ (E3)</td></tr><tr><td><b>RT-11</b></td><td>Phishing simulado contra contas fictícias, com métricas</td><td>phishing/ (E3)</td></tr><tr><td><b>RT-12</b></td><td>Logs centralizados com NTP, retenção, SIEM</td><td>siem/</td></tr><tr><td><b>RT-13</b></td><td>4 regras: VPN anômalo, SQLi, cert inválido, atuador fora de hora</td><td>siem/regras_deteccao.md</td></tr><tr><td><b>RT-14</b></td><td>Forense: hash, custódia, linha do tempo, ATT&amp;CK, laudo</td><td>forense/ (E4)</td></tr><tr><td><b>RT-15</b></td><td>Respostas de baixo risco; alto impacto com aprovação humana</td><td>automacao/responder.py</td></tr><tr><td><b>RT-16</b></td><td>IA defensiva: Isolation Forest com métricas</td><td>ia/deteccao_anomalia.py (E3)</td></tr><tr><td><b>RT-17</b></td><td>Guardrails de LLM: prompt injection, vazamento, sem atuação física</td><td>ia/guardrail_llm.py (E3)</td></tr><tr><td><b>RT-18</b></td><td>Ameaças por IA (phishing/voz clonada) e controles fora de banda</td><td>§3, phishing/</td></tr><tr><td><b>RT-19</b></td><td>Privacidade/LGPD: minimização, pseudonimização, RIPD, dados sintéticos</td><td>§6, schema.sql</td></tr><tr><td><b>RT-20</b></td><td>Custos (12 meses) e plano de manutenção</td><td>§6</td></tr><tr><td><b>RT-21</b></td><td>Painel acessível (WCAG 2.1 AA): contraste, teclado, linguagem simples</td><td>§6</td></tr><tr><td><b>RT-22</b></td><td>Métricas: disponibilidade, MTTD/MTTR, operação sem internet, consumo</td><td>§7 (E3)</td></tr><tr><td><b>RT-23</b></td><td>Teste de caos ≥30 min com reconciliação</td><td>scripts/teste_caos.md (E3)</td></tr></table>
+
+<h2>9. Uso de IA</h2>
+<p>Na <b>construção</b> deste trabalho, a equipe usou um assistente de IA (ferramenta de IA generativa)
+para apoiar a geração e a revisão de código, a redação dos documentos e a organização da
+arquitetura. Todo o conteúdo foi conferido e validado pela equipe, que responde integralmente
+por ele; onde possível, as partes geradas foram testadas por execução real (ver E3).</p>
+<p>No <b>produto</b>, a IA aparece de forma defensiva: (a) detector de anomalias na telemetria
+(Isolation Forest, <code>ia/deteccao_anomalia.py</code>); (b) guardrails de um eventual
+assistente LLM de triagem (<code>ia/guardrail_llm.py</code>), que trata conteúdo externo como
+dado, bloqueia prompt injection e vazamento de segredos e <b>não</b> tem poder de atuação
+física. As ameaças potencializadas por IA do cenário (phishing gerado por IA, voz clonada) e
+seus controles estão na seção 3 e no E3.</p>
+</body></html>

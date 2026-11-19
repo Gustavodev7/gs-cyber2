@@ -1,0 +1,20 @@
+Assunto: [ACAO NECESSARIA] Atualizacao obrigatoria do acesso ao painel
+
+Prezado(a) voluntario(a),
+
+Por determinacao da Prefeitura de Serra Clara, todos os acessos ao painel de
+supervisao da Rede Vila Aurora precisam ser revalidados ate hoje as 18h. Contas
+nao revalidadas serao suspensas.
+
+Acesse o portal e confirme seus dados:
+  https://painel-vila-aurora.atualizacao-acesso.lab/login   <- dominio falso (look-alike)
+
+Atenciosamente,
+Coordenadoria Municipal (mensagem de cenario - gerada para o exercicio)
+
+--
+NOTA DO EXERCICIO (nao faz parte do e-mail enviado):
+Este e o modelo do phishing simulado do RT-11. Reproduz as pistas do INC-VA-0712:
+urgencia, autoridade ("prefeitura"), prazo curto e dominio parecido mas diferente.
+Enviar SOMENTE para as 5 contas ficticias da equipe. A landing page registra o
+"submit", nunca a senha digitada.

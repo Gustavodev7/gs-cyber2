@@ -1,0 +1,124 @@
+<!--
+  Regras de deteccao da Rede Vila Aurora (RT-13) para o Wazuh 4.x.
+  Copiadas para /var/ossec/etc/rules/local_rules.xml por siem/configurar_wazuh.sh.
+  As fontes sao os logs centralizados em ./logs (montado em /var/log/vila):
+    - JSON (uma linha por evento): painel, painel legado, ingestao, borda, SOAR, VPN, WAF
+    - texto: Mosquitto e PostgreSQL
+  Horarios: o manager roda com TZ=America/Sao_Paulo (horario local da Vila Aurora).
+-->
+
+<!-- ===================== (a) login VPN anomalo ===================== -->
+<group name="vila_aurora,vpn,">
+  <rule id="100100" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^vpn_handshake$</field>
+    <time>23:00 - 06:00</time>
+    <description>VPN: sessao iniciada em horario atipico (madrugada) - peer $(peer) de $(srcip)</description>
+    <mitre><id>T1078</id><id>T1133</id></mitre>
+  </rule>
+
+  <rule id="100101" level="12">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^vpn_handshake$</field>
+    <field name="ip_conhecido">^false$</field>
+    <description>VPN: sessao a partir de IP fora das faixas conhecidas - peer $(peer) de $(srcip)</description>
+    <mitre><id>T1078</id><id>T1133</id></mitre>
+  </rule>
+</group>
+
+<!-- ===================== (b) padrao de SQL Injection ===================== -->
+<group name="vila_aurora,web,sqli,">
+  <rule id="100110" level="12">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^http$</field>
+    <field name="rota" type="pcre2">(?i)(union\s+(all\s+)?select|'\s*(or|and)\s+'?\w*'?\s*=|'\s*--|;\s*--|\bsleep\s*\(|pg_sleep|information_schema|pg_catalog|\bcase\s+when\b|chr\(\d+\))</field>
+    <description>Padrao de SQL Injection no painel ($(app)) vindo de $(srcip): $(rota)</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100111" level="12" frequency="20" timeframe="60">
+    <if_matched_sid>100110</if_matched_sid>
+    <same_srcip />
+    <description>Varredura automatizada de SQL Injection (ex.: sqlmap) a partir de $(srcip)</description>
+    <mitre><id>T1190</id><id>T1595.002</id></mitre>
+  </rule>
+
+  <rule id="100112" level="10">
+    <decoded_as>json</decoded_as>
+    <match>SQL Injection Attack</match>
+    <description>WAF ModSecurity/CRS bloqueou tentativa de SQL Injection</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+</group>
+
+<!-- ============ (c) dispositivo sem certificado valido / revogado ============ -->
+<group name="vila_aurora,mqtt,identidade,">
+  <rule id="100120" level="10">
+    <match>certificate verify failed|certificate revoked|peer did not return a certificate|unknown ca|bad certificate|OpenSSL Error</match>
+    <description>Dispositivo sem certificado valido (ou revogado) tentou conectar</description>
+    <mitre><id>T1200</id><id>T0848</id></mitre>
+  </rule>
+
+  <rule id="100121" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^acesso_negado$</field>
+    <field name="cn" type="pcre2">.*</field>
+    <description>Ingestao recusou identidade nao autorizada (CN $(cn))</description>
+    <mitre><id>T1200</id></mitre>
+  </rule>
+</group>
+
+<!-- ======== (d) comando de atuador fora do horario ou do perfil ======== -->
+<group name="vila_aurora,atuador,ics,">
+  <rule id="100130" level="12">
+    <decoded_as>json</decoded_as>
+    <field name="acao" type="pcre2">^(agendamento_bomba|desligar_bomba|liberar_todas_portas|bomba_modo_economia|atuador_modo_seguro)$</field>
+    <time>22:00 - 06:00</time>
+    <description>Comando de atuador ($(acao)) em horario fora do esperado - pedido por $(login)</description>
+    <mitre><id>T0836</id><id>T0855</id></mitre>
+  </rule>
+
+  <rule id="100131" level="12">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^comando_atuador$</field>
+    <field name="resultado">^negado_rbac$</field>
+    <description>Comando de atuador ($(acao)) pedido por perfil sem permissao: $(login)/$(perfil)</description>
+    <mitre><id>T0855</id></mitre>
+  </rule>
+
+  <rule id="100132" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^decisao_recusada$</field>
+    <description>Tentativa de aprovar o proprio comando de alto impacto (quatro olhos violado): $(login)</description>
+    <mitre><id>T0855</id></mitre>
+  </rule>
+</group>
+
+<!-- ================= complementares (contexto do incidente) ================= -->
+<group name="vila_aurora,autenticacao,">
+  <rule id="100140" level="5">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^login_falhou$</field>
+    <description>Falha de login no painel para $(alvo) de $(srcip)</description>
+  </rule>
+  <rule id="100141" level="10" frequency="5" timeframe="120">
+    <if_matched_sid>100140</if_matched_sid>
+    <same_srcip />
+    <description>Forca bruta / credential stuffing no painel a partir de $(srcip)</description>
+    <mitre><id>T1110</id></mitre>
+  </rule>
+</group>
+
+<group name="vila_aurora,borda,">
+  <rule id="100150" level="7">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^alarme_local$</field>
+    <description>Alarme local na borda: $(tipo) em $(dispositivo) (valor $(valor))</description>
+  </rule>
+  <rule id="100151" level="6">
+    <decoded_as>json</decoded_as>
+    <field name="evento">^link_nuvem$</field>
+    <field name="estado">^down$</field>
+    <description>No de borda $(borda) sem link com a nuvem: operando em modo autonomo</description>
+  </rule>
+</group>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel da Rede Vila Aurora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='painel.css') }}">
+</head>
+<body>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+  <header class="topo">
+    <h1>Painel da Rede Vila Aurora</h1>
+    <div class="topo-acoes">
+      <button type="button" id="tema" aria-pressed="false">Usar tema escuro</button>
+      <button type="button" id="sair" hidden>Sair</button>
+    </div>
+  </header>
+
+  <main id="conteudo" tabindex="-1">
+    <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
+
+    <section id="secao-login" aria-labelledby="t-login">
+      <h2 id="t-login">Entrar</h2>
+      <p>Use seu usuário, sua senha e o código de 6 números do aplicativo autenticador.</p>
+      <form id="form-login" novalidate>
+        <label for="login">Usuário</label>
+        <input id="login" name="login" autocomplete="username" required pattern="[a-z0-9-]{1,40}">
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        <label for="totp">Código do autenticador (6 números)</label>
+        <input id="totp" name="totp" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}" maxlength="6">
+        <button type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <div id="area" hidden>
+      <p id="quem" class="quem"></p>
+
+      <section aria-labelledby="t-sensores">
+        <h2 id="t-sensores">Como estão os sensores agora</h2>
+        <button type="button" id="atualizar">Atualizar leituras</button>
+        <table id="tabela-sensores">
+          <caption>Última leitura de cada sensor</caption>
+          <thead><tr><th scope="col">Espaço</th><th scope="col">Sensor</th><th scope="col">Tipo</th><th scope="col">Valor</th><th scope="col">Situação</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="t-hist">
+        <h2 id="t-hist">Buscar no histórico de acessos</h2>
+        <form id="form-hist">
+          <label for="h-espaco">Espaço</label>
+          <select id="h-espaco" name="espaco">
+            <option value="">Todos</option>
+            <option value="centro">Centro Comunitário</option>
+            <option value="escola">Escola</option>
+            <option value="ubs">UBS</option>
+            <option value="horta">Horta e Cozinha</option>
+            <option value="abrigo">Abrigo</option>
+          </select>
+          <label for="h-disp">Nome do sensor (opcional)</label>
+          <input id="h-disp" name="dispositivo" pattern="[a-z0-9-]{1,40}" aria-describedby="h-disp-ajuda">
+          <p id="h-disp-ajuda" class="ajuda">Só letras minúsculas, números e hífen. Exemplo: escola-sensor-1</p>
+          <button type="submit">Buscar</button>
+        </form>
+        <table id="tabela-hist">
+          <caption>Resultado da busca (até 200 registros)</caption>
+          <thead><tr><th scope="col">Quando</th><th scope="col">Espaço</th><th scope="col">Sensor</th><th scope="col">O que aconteceu</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="secao-atuador" aria-labelledby="t-atu" hidden>
+        <h2 id="t-atu">Comandar um equipamento</h2>
+        <p>Ações seguras acontecem na hora. Ações que podem causar dano (desligar bomba, abrir todas as portas) ficam esperando outra pessoa da coordenação aprovar.</p>
+        <form id="form-atu">
+          <label for="a-acao">Ação</label>
+          <select id="a-acao" name="acao">
+            <option value="atuador_modo_seguro">Colocar equipamento em modo seguro</option>
+            <option value="bomba_modo_economia">Bomba em modo economia</option>
+            <option value="isolar_dispositivo">Isolar um sensor</option>
+            <option value="desligar_bomba">Desligar a bomba (precisa de aprovação)</option>
+            <option value="liberar_todas_portas">Liberar todas as portas (precisa de aprovação)</option>
+          </select>
+          <label for="a-alvo">Equipamento</label>
+          <input id="a-alvo" name="alvo" required pattern="[a-z0-9-]{1,40}" placeholder="abrigo-bomba">
+          <button type="submit">Enviar comando</button>
+        </form>
+      </section>
+
+      <section id="secao-comandos" aria-labelledby="t-cmd" hidden>
+        <h2 id="t-cmd">Comandos pedidos</h2>
+        <table id="tabela-cmd">
+          <caption>Últimos comandos e quem aprovou</caption>
+          <thead><tr><th scope="col">Nº</th><th scope="col">Pedido por</th><th scope="col">Ação</th><th scope="col">Equipamento</th><th scope="col">Situação</th><th scope="col">Decisão</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+  <script src="{{ url_for('static', filename='painel.js') }}"></script>
+</body>
+</html>

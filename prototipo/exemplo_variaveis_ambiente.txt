@@ -1,0 +1,18 @@
+# Copiar para um arquivo .env e preencher. NUNCA versionar o .env.
+# (O exemplo usa .txt so para nao casar com a protecao de .env no .gitignore.)
+# Gerar valores aleatorios no lab, por exemplo:
+#   PG_OWNER_PASSWORD=$(openssl rand -base64 18)
+# Valores sinteticos apenas, para o laboratorio isolado.
+
+# Senhas do banco (owner, usuario de leitura do painel, usuario de escrita da ingestao)
+PG_OWNER_PASSWORD=troque_owner_aleatorio
+PAINEL_RO_PASSWORD=troque_ro_aleatorio
+INGEST_PASSWORD=troque_ingest_aleatorio
+
+# Chave de sessao do painel (Flask). Use um valor longo e aleatorio:
+#   PAINEL_SECRET=$(openssl rand -hex 32)
+PAINEL_SECRET=troque_por_valor_aleatorio_longo
+
+# 1 = cookie de sessao so por HTTPS (producao, atras da VPN/proxy TLS).
+# 0 = laboratorio local em HTTP.
+PAINEL_COOKIE_SECURE=0

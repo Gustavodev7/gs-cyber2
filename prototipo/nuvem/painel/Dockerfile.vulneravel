@@ -1,0 +1,7 @@
+# Imagem SO do laboratorio: versao vulneravel do painel (o "antes" do RT-08).
+FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir flask==3.0.3 "psycopg[binary]==3.2.3"
+COPY app_vulneravel.py .
+EXPOSE 8081
+CMD ["python", "app_vulneravel.py"]

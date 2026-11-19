@@ -1,0 +1,23 @@
+# ACL do broker: menor privilegio por identidade (CN do certificado).
+# Sensores so PUBLICAM no proprio topico; a borda so ASSINA. Ninguem faz os dois.
+# O SOAR so publica comandos de modo seguro (vila/<espaco>/comando/<alvo>).
+# Para isolar um dispositivo (RT-15), automacao/responder.py comenta o bloco dele
+# e recarrega o broker.
+
+# No de borda consome toda a telemetria e os comandos do espaco
+user borda-ubs
+topic read vila/#
+
+# Cada sensor so pode publicar no proprio ramo
+user ubs-geladeira
+topic write vila/ubs/ambiente/ubs-geladeira
+
+user escola-nivel
+topic write vila/escola/agua/escola-nivel
+
+user abrigo-alagamento
+topic write vila/abrigo/ambiente/abrigo-alagamento
+
+# Orquestrador de resposta (SOAR): so comandos, nunca telemetria
+user soar
+topic write vila/+/comando/#

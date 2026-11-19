@@ -1,0 +1,88 @@
+<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><style>@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.42; color: #111; }
+h1 { font-size: 19pt; margin: 0 0 4pt; }
+h2 { font-size: 13.5pt; margin: 16pt 0 5pt; border-bottom: 1.5px solid #333; padding-bottom: 2pt; break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 11pt 0 3pt; break-after: avoid; }
+p { margin: 4pt 0; text-align: justify; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.5pt; }
+th, td { border: 1px solid #777; padding: 3pt 5pt; vertical-align: top; text-align: left; }
+th { background: #e6e6e6; }
+pre, code { font-family: Consolas, "Courier New", monospace; }
+pre { font-size: 8.3pt; line-height: 1.22; background: #f4f4f4; border: 1px solid #ccc; padding: 5pt 7pt; white-space: pre-wrap; word-break: break-word; }
+code { font-size: 9.3pt; background: #f1f1f1; padding: 0 2pt; }
+.capa { border: 2px solid #222; padding: 12pt 14pt; margin-bottom: 12pt; }
+.capa p { margin: 2pt 0; text-align: left; }
+.nota { border-left: 4px solid #888; background: #f7f7f7; padding: 5pt 9pt; margin: 7pt 0; }
+.pend { border: 1.5px dashed #b00; background: #fff3f3; padding: 6pt 9pt; margin: 7pt 0; color: #700; break-inside: avoid; }
+.hl { background: #ffe9a8; }
+img { max-width: 100%; }
+.nb { break-inside: avoid; }
+</style></head><body><div class="capa"><h1>Laudo Forense do Incidente INC-VA-0712</h1>
+<p><b>E4</b> — Rede Comunitária Vila Aurora · Serra Clara (SP), município fictício</p>
+<p>FIAP · Global Solution 2026.2 · Cybersecurity · Resilient Community Infrastructure</p>
+<p><b>Integrantes:</b> Lucas Bonomi Salvador Magalhães — RM98756 · Guilherme Bolina — RM550339 · Gustavo Negri — RM550311</p>
+<p class="nota">Turma: 4ECA. Nomenclatura do arquivo:
+GS2026.2_&lt;Turma&gt;_&lt;Grupo&gt;_E4. Só dados sintéticos (LGPD).</p></div>
+<h2>1. Escopo e método</h2>
+<p>Reprodução controlada e análise do incidente INC-VA-0712 em laboratório isolado, com dados
+sintéticos. A aquisição calcula o hash SHA-256 de cada evidência <b>no momento da coleta</b> e
+registra a cadeia de custódia (quem, quando, onde, como) em arquivo append. A linha do tempo
+assume relógios sincronizados por NTP — a ausência disso foi, aliás, uma das falhas do
+incidente.</p>
+
+<h2>2. Evidências e integridade (RT-14) — EXECUTADO</h2>
+<p>Coleta real com <code>forense/coletar_evidencia.py</code>; hashes reproduzíveis por
+<code>sha256sum</code>:</p>
+<table style="font-size:8pt"><tr><th>Evidência</th><th>SHA-256</th><th>Tam.</th><th>Coletor</th><th>Coletado em (UTC)</th></tr><tr><td>vpn.log</td><td><code>941ccf7c696aa30cb72744d4d0442cf666b221c123136488c8a9f6d0a0cddd53</code></td><td>108 B</td><td>ana</td><td>2026-11-12T01:16:11Z</td></tr><tr><td>painel.log</td><td><code>f3ab850be0310ff9b79676e912bcc6cc10fb294733ed14e01ba5a04cdbc3e2f4</code></td><td>124 B</td><td>ana</td><td>2026-11-12T01:16:11Z</td></tr><tr><td>atuador.log</td><td><code>b44d389291389b9dbe77458e36c3b0fa109efbb91bd14f0b25b126b016ef819d</code></td><td>70 B</td><td>ana</td><td>2026-11-12T01:16:11Z</td></tr></table>
+<div class="nota">A cadeia de custódia completa está em <code>forense/custodia.json</code>. Qualquer
+alteração em uma evidência muda o hash e é detectável.</div>
+
+<h2>3. Linha do tempo consolidada e MITRE ATT&CK</h2>
+<table style="font-size:8.6pt"><tr><th>Quando (UTC-3)</th><th>Evento</th><th>Tática</th><th>Técnica</th></tr><tr><td>2026-02-06 19:40</td><td>Phishing &#x27;da prefeitura&#x27; (texto gerado por IA), link para página falsa</td><td>Reconnaissance</td><td>T1598.003</td></tr><tr><td>2026-02-06 19:52</td><td>Reforço por áudio de WhatsApp com voz clonada</td><td>Reconnaissance</td><td>T1598.004</td></tr><tr><td>2026-02-06 20:05</td><td>Credenciais digitadas na página falsa (colhidas pelo atacante)</td><td>Resource Development</td><td>T1586.002</td></tr><tr><td>2026-02-07 02:14</td><td>Login na VPN legada (sem MFA) de IP externo</td><td>Initial Access</td><td>T1133 / T1078</td></tr><tr><td>2026-02-07 02:15</td><td>SQL Injection no painel legado</td><td>Initial Access</td><td>T1190</td></tr><tr><td>2026-02-07 02:15</td><td>Extração da tabela de usuários via injeção</td><td>Collection</td><td>T1213</td></tr><tr><td>2026-02-07 02:16</td><td>Alteração do agendamento da bomba (atuador)</td><td>Impair Process Control (ICS)</td><td>T0836</td></tr><tr><td>2026-02-07 03:30</td><td>Reservatório da escola esvaziado</td><td>Impact (ICS)</td><td>T0826</td></tr><tr><td>2026-02-07 03:45</td><td>Fibra cai; câmara fria da UBS sem alerta (falha de arquitetura, não ação do atacante)</td><td>Impact (ICS)</td><td>T0826 / T0815</td></tr><tr><td>2026-02-07 08:00</td><td>Logs espalhados, relógios fora de sincronia, parte sobrescrita</td><td>Lacuna defensiva</td><td>T1070 não confirmado</td></tr></table>
+<p class="nota"><b>Justificativa do mapeamento MITRE ATT&amp;CK:</b> o phishing e a voz clonada são <i>Reconnaissance</i>
+(T1598), não <i>Initial Access</i>; a página que colhe credenciais é <i>Resource Development</i>
+(T1586.002). A alteração do agendamento usa a tática ICS <i>Impair Process Control</i> com a
+técnica T0836 (Modify Parameter). A sobrescrita de logs e a dessincronia de relógios foram
+<b>lacunas da defesa</b>: não há evidência de que o atacante tenha apagado trilhas
+deliberadamente (T1070 — Indicator Removal — fica como hipótese não confirmada).</p>
+<p>Gerada por <code>forense/consolidar_timeline.py</code> (saída em <code>timeline.json</code> e
+<code>timeline.md</code>), combinando os eventos datados com a cadeia de custódia.</p>
+
+<h2>4. Resposta ao incidente (RT-15) — EXECUTADO</h2>
+<p>O SOAR (<code>automacao/responder.py</code>) classifica por risco. Demonstração real:</p>
+<pre>bloquear_ip 203.0.113.45      -> [BAIXO] executada automaticamente
+revogar_certificado coord-vpn -> [BAIXO] executada automaticamente
+desligar_bomba abrigo         -> [ALTO] REQUER APROVAÇÃO HUMANA (fila)</pre>
+<p>Contenção rápida do que é seguro conter (isolar, revogar, bloquear, encerrar sessão); o que
+pode causar dano físico (desligar a bomba do abrigo durante enchente) nunca é automático.</p>
+
+<h2>5. Causas e conclusões</h2>
+<ol>
+<li><b>Causa inicial:</b> engenharia social potencializada por IA (e-mail + voz clonada) que
+levou ao roubo de credencial.</li>
+<li><b>Amplificadores:</b> VPN sem MFA, painel vulnerável a SQL Injection, usuário de banco com
+privilégio excessivo, ausência de operação local e logging deficiente.</li>
+<li><b>Impacto:</b> vazamento da base de usuários, esvaziamento do reservatório e câmara fria
+de vacinas sem alerta por horas.</li>
+</ol>
+
+<h2>6. Recomendações (mapeadas aos controles da nova arquitetura)</h2>
+<ul>
+<li>MFA e WireGuard na VPN; nenhuma porta admin exposta (RT-06, RT-09).</li>
+<li>Parametrização + validação + menor privilégio no painel (RT-08).</li>
+<li>Nó de borda autônomo com regras locais e store-and-forward (RT-01, RT-02).</li>
+<li>SPF/DKIM/DMARC e treino antiphishing com verificação fora de banda (RT-10, RT-11, RT-18).</li>
+<li>Logs centralizados com NTP, retenção e hash; SIEM com as quatro regras (RT-12, RT-13, RT-14).</li>
+<li>Respostas automatizadas de baixo risco, decisão humana no alto impacto (RT-15).</li>
+</ul>
+<p>Como possibilidade de evolução do projeto, recomenda-se a captura e análise de memória de nós comprometidos com Volatility 3, além da elaboração de uma linha do tempo forense ampliada utilizando plaso/log2timeline.</p>
+
+<h2>7. Uso de IA</h2>
+<p>Na <b>construção</b> deste laudo, a equipe usou um assistente de IA (ferramenta de IA generativa)
+para apoiar a geração e a revisão de código e a redação. A linha do tempo da reprodução é
+<b>gerada automaticamente dos logs coletados</b> (<code>forense/consolidar_timeline.py</code>),
+sem fatos digitados à mão; a equipe conferiu cada evidência, hash e mapeamento ATT&amp;CK e
+responde integralmente pelo conteúdo.</p>
+<p>No <b>produto</b>, a IA é usada de forma defensiva (detector de anomalias e guardrails de
+LLM, ver E3); nenhum componente de IA tem poder de atuação física.</p>
+</body></html>
